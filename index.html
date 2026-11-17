@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EcomHub">
+<meta name="theme-color" content="#0d0d0f">
+<meta name="robots" content="noindex, nofollow">
+<title>EcomHub</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root { --bg: #0d0d0f; --card: #17171a; --line: #26262b; --fg: #f5f5f7; --mut: #8d8d96; --acc: #ff7a00; --acc2: #ff2a00; --good: #34d17a; --bad: #ff6b6b; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--fg); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+body { padding: calc(env(safe-area-inset-top) + 8px) 16px calc(env(safe-area-inset-bottom) + 96px); max-width: 560px; margin: 0 auto; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0 2px; }
+.circle { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: #141417; display: grid; place-items: center; }
+.circle svg { width: 20px; height: 20px; stroke: var(--fg); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.spinning svg { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.acct { display: flex; align-items: center; gap: 10px; padding: 6px 16px 6px 6px; border-radius: 999px; border: 1px solid var(--line); background: #141417; font-weight: 600; font-size: 17px; }
+.logo { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; display: grid; place-items: center; font-weight: 800; font-size: 14px; color: #fff; }
+.stamp { text-align: center; color: var(--mut); font-size: 12px; min-height: 16px; margin: 6px 0 4px; }
+.hero { margin: 14px 0 6px; }
+.row-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.row { display: flex; align-items: center; gap: 10px; }
+.lbl-lg { font-size: 19px; font-weight: 500; }
+.chip { font-size: 13px; color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; background: #141417; }
+.big { font-size: 48px; font-weight: 700; letter-spacing: -1.5px; margin: 8px 0 4px; font-variant-numeric: tabular-nums; line-height: 1.05; }
+.sub { font-size: 15px; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.muted { color: var(--mut); }
+.d { font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums; }
+.sub .d { font-size: 15px; }
+.d.good { color: var(--good); } .d.bad { color: var(--bad); } .d.flat { color: var(--mut); font-weight: 500; }
+.chart { display: block; margin: 18px 0 6px; overflow: visible; }
+.ln-cur { fill: none; stroke: var(--acc); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+.ln-prev { fill: none; stroke: #4a4a52; stroke-width: 2; stroke-dasharray: 4 5; }
+.dot { fill: var(--acc); } .dot-halo { fill: var(--acc); opacity: .25; }
+.bar-cur { fill: var(--acc); } .bar-prev { fill: #34343b; }
+.ax { fill: var(--mut); font-size: 12px; text-anchor: middle; }
+.legend { display: flex; gap: 16px; font-size: 12px; color: var(--mut); margin-bottom: 6px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.lg-cur, .lg-prev { width: 14px; height: 3px; border-radius: 2px; display: inline-block; background: var(--acc); }
+.lg-prev { background: repeating-linear-gradient(90deg, #6a6a72 0 4px, transparent 4px 7px); }
+.pills { display: flex; gap: 6px; margin: 12px 0 18px; }
+.pill { flex: 1; padding: 10px 0; border-radius: 12px; font-weight: 600; font-size: 15px; color: #d8d8de; }
+.pill.on { background: var(--acc); color: #2a1000; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.card, .ccard, .item, .err, .note, .empty { background: var(--card); border: 1px solid var(--line); border-radius: 18px; }
+.card { padding: 14px 14px 12px; min-width: 0; }
+.lbl { color: var(--mut); font-size: 13px; }
+.val { font-size: 22px; font-weight: 650; margin: 4px 0 3px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.3px; }
+.section-h { display: flex; justify-content: space-between; align-items: center; margin: 22px 2px 10px; font-size: 17px; font-weight: 600; }
+.link { color: var(--acc); font-size: 15px; font-weight: 500; }
+.list { display: flex; flex-direction: column; gap: 8px; }
+.item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+.item.lead { border-color: #a84a10; background: linear-gradient(135deg, #2b1b10, var(--card) 70%); }
+.item.day { align-items: flex-start; }
+.av { width: 40px; height: 40px; border-radius: 50%; background: #23232a; display: grid; place-items: center; font-weight: 700; color: var(--acc); flex: none; }
+.grow { flex: 1; min-width: 0; }
+.t { font-weight: 600; font-size: 16px; }
+.s { color: var(--mut); font-size: 13px; margin-top: 3px; font-variant-numeric: tabular-nums; }
+.s.neg { color: var(--bad); }
+.right { text-align: right; flex: none; }
+.amt { font-weight: 650; font-size: 16px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.medal { width: 32px; text-align: center; font-size: 22px; flex: none; color: var(--mut); font-weight: 700; }
+.track { height: 6px; border-radius: 3px; background: #26262c; margin: 7px 0 2px; overflow: hidden; }
+.track span { display: block; height: 100%; border-radius: 3px; background: var(--acc); }
+.segs { display: flex; background: #141417; border: 1px solid var(--line); border-radius: 12px; padding: 3px; margin: -6px 0 14px; }
+.seg { flex: 1; padding: 8px 0; border-radius: 9px; font-size: 14px; font-weight: 600; color: var(--mut); }
+.seg.on { background: #2a2a31; color: var(--fg); }
+.ccard { padding: 14px; margin-bottom: 10px; }
+.mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 8px; margin-top: 12px; }
+.mv { font-weight: 600; font-size: 16px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.err { padding: 12px 14px; border-color: #5a2a2a; color: #ffb3b3; font-size: 14px; margin: 10px 0; }
+.note, .empty { padding: 12px 14px; color: var(--mut); font-size: 13px; margin-top: 10px; }
+.loading { display: flex; flex-direction: column; align-items: center; gap: 14px; color: var(--mut); padding: 80px 0; }
+.spin { width: 28px; height: 28px; border-radius: 50%; border: 3px solid #2a2a30; border-top-color: var(--acc); animation: spin 1s linear infinite; }
+.setup { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.setup input { font: inherit; font-size: 17px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); color: var(--fg); }
+.btn { padding: 14px; border-radius: 14px; background: var(--acc2); color: #fff; font-weight: 600; font-size: 17px; }
+.nav { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom) + 10px); width: min(calc(100% - 24px), 536px); display: flex; justify-content: space-around; background: rgba(28, 28, 32, .92); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); border: 1px solid #2c2c33; border-radius: 999px; padding: 6px; }
+.nav button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 0 6px; border-radius: 999px; font-size: 11px; font-weight: 600; color: #a5a5ad; }
+.nav button svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.nav button.on { background: #2b2b31; color: #fff; }
+@media (prefers-reduced-motion: reduce) { .spinning svg, .spin { animation: none; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="acct"><img class="logo" src="icon-192.png" alt="">EcomHub</div>
+  <button class="circle" id="refresh" aria-label="Odśwież dane"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v5h-5"/></svg></button>
+</header>
+<div class="stamp" id="stamp"></div>
+<main id="main"></main>
+<nav class="nav" aria-label="Nawigacja">
+  <button data-tab="home"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/></svg>Home</button>
+  <button data-tab="daily"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>Dzień</button>
+  <button data-tab="closers"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/></svg>Closerzy</button>
+  <button data-tab="ranking"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>Ranking</button>
+</nav>
+<script>window.EH_API_URL = "https://script.google.com/macros/s/AKfycbxrioSlqGqYida_GfqPH2hlzfHQHYmkPw78rVSuG-uXsk1I1pNO3VOJ-kZ3RK6vR-0PdQ/exec";</script>
+<script>
+const calcKpi = (zdarzenia) => {
+  const p = dash.params();
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const today = new Date(); const t = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+  const od = p.od || iso(new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), 1)));
+  const dO = p.do || iso(t);
+  const dni = Math.round((Date.parse(dO) - Date.parse(od)) / 864e5) + 1;
+  const pDo = iso(new Date(Date.parse(od) - 864e5)), pOd = iso(new Date(Date.parse(od) - dni * 864e5));
+  const VAT = 1.23;
+  const policz = (a, b, okres) => {
+    const ev = zdarzenia.filter((e) => e.data >= a && e.data <= b);
+    const sum = (f, k) => ev.filter(f).reduce((s, e) => s + (e[k] || 0), 0);
+    const cnt = (f) => ev.filter(f).length;
+    const div = (x, y) => (y ? x / y : null);
+    const w = (e) => e.typ === 'wpłata';
+    const revenue = sum(w, 'kwota');
+    const zwroty = sum((e) => w(e) && e.zwrot, 'kwota');
+    const net = (revenue - zwroty) / VAT;
+    const ad_spend = sum((e) => e.typ === 'reklama', 'kwota');
+    const eodE = (e) => e.typ === 'eod' && e.produkt === 'EcomHub', eodS = (e) => e.typ === 'eod' && e.produkt === 'Starter';
+    const appsP = (e) => e.typ === 'aplikacja' && e.kanal === 'Paid', appsO = (e) => e.typ === 'aplikacja' && e.kanal === 'Organic';
+    const umowione = cnt((e) => e.typ === 'call' && e.produkt !== 'Starter');
+    const rev_e = sum((e) => w(e) && e.produkt === 'EcomHub', 'kwota');
+    return {
+      okres, od: a, do: b,
+      revenue, revenue_ecomhub: rev_e,
+      revenue_starter: sum((e) => w(e) && e.produkt === 'Starter', 'kwota'),
+      revenue_inne: sum((e) => w(e) && e.produkt === 'Inne', 'kwota'),
+      zwroty, net, ad_spend, net_po_reklamach: net - ad_spend,
+      roas: div(sum((e) => w(e) && e.kanal === 'Paid', 'kwota'), ad_spend),
+      nowi_ecomhub: cnt((e) => w(e) && e.produkt === 'EcomHub' && e.nowy_klient),
+      nowi_starter: cnt((e) => w(e) && e.produkt === 'Starter' && e.nowy_klient),
+      nowi_inne: cnt((e) => w(e) && e.produkt === 'Inne' && e.nowy_klient),
+      wplaty_ecomhub: cnt((e) => w(e) && e.produkt === 'EcomHub'),
+      aplikacje: cnt((e) => e.typ === 'aplikacja'),
+      kwal_paid_pct: div(cnt((e) => appsP(e) && e.kwalifikowana), cnt(appsP)),
+      kwal_org_pct: div(cnt((e) => appsO(e) && e.kwalifikowana), cnt(appsO)),
+      umowione_ecomhub: umowione,
+      odbyte_ecomhub: sum(eodE, 'odbyte'),
+      show_rate_ecomhub: div(sum(eodE, 'odbyte'), sum(eodE, 'w_kalendarzu')),
+      close_rate_ecomhub: div(sum(eodE, 'sprzedaze_eod'), sum(eodE, 'odbyte')),
+      cash_na_umowiony: div(rev_e, umowione),
+      umowione_starter: cnt((e) => e.typ === 'call' && e.produkt === 'Starter'),
+      show_rate_starter: div(sum(eodS, 'odbyte'), sum(eodS, 'w_kalendarzu')),
+      close_rate_starter: div(sum(eodS, 'sprzedaze_eod'), sum(eodS, 'odbyte')),
+      net_starter: sum((e) => w(e) && e.produkt === 'Starter' && !e.zwrot, 'kwota') / VAT,
+    };
+  };
+  const cur = policz(od, dO, 'bieżący'), prev = policz(pOd, pDo, 'poprzedni');
+  for (const k of Object.keys(cur)) {
+    if (typeof cur[k] !== 'number' || typeof prev[k] !== 'number') continue;
+    // Rates change in percentage points; amounts and counts in percent.
+    cur[k + '_zm'] = /_pct$|_rate_/.test(k) ? cur[k] - prev[k] : (prev[k] ? (cur[k] - prev[k]) / Math.abs(prev[k]) : null);
+  }
+  return [cur, prev];
+}
+
+const calcClosers = (zdarzenia) => {
+  const p = dash.params();
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const today = new Date(); const t = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+  const od = p.od || iso(new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), 1)));
+  const dO = p.do || iso(t);
+  const ev = zdarzenia.filter((e) => e.data >= od && e.data <= dO && e.produkt === 'EcomHub' && e.closer);
+  const div = (x, y) => (y ? x / y : null);
+  const by = new Map();
+  const get = (c) => {
+    if (!by.has(c)) by.set(c, {closer: c, umowione: 0, w_kalendarzu: 0, odbyte: 0, sprzedaze_eod: 0, nowi_klienci: 0, wplaty: 0, cash: 0});
+    return by.get(c);
+  };
+  for (const e of ev) {
+    const r = get(e.closer);
+    if (e.typ === 'call') r.umowione++;
+    else if (e.typ === 'eod') { r.w_kalendarzu += e.w_kalendarzu; r.odbyte += e.odbyte; r.sprzedaze_eod += e.sprzedaze_eod; }
+    else if (e.typ === 'wpłata') { r.wplaty++; r.cash += e.kwota; if (e.nowy_klient) r.nowi_klienci++; }
+  }
+  const rows = [...by.values()];
+  const tot = {closer: 'Razem', umowione: 0, w_kalendarzu: 0, odbyte: 0, sprzedaze_eod: 0, nowi_klienci: 0, wplaty: 0, cash: 0};
+  for (const r of rows) for (const k of Object.keys(tot)) if (k !== 'closer') tot[k] += r[k];
+  const fin = (r) => ({...r, show_rate: div(r.odbyte, r.w_kalendarzu), close_rate: div(r.sprzedaze_eod, r.odbyte), cash_na_umowiony: div(r.cash, r.umowione)});
+  return [...rows.map(fin).sort((a, b) => b.cash - a.cash), fin(tot)];
+}
+
+const calcLeaderboard = (closerzy) => {
+    // Ranking criterion comes from the switch on the page: cash, cash_na_umowiony or nowi_klienci.
+    const wybor = dash.params().ranking;
+    const kryt = ['cash', 'cash_na_umowiony', 'nowi_klienci'].includes(wybor) ? wybor : 'cash';
+    // Cash / call is ranked only for closers with at least this many booked calls; the rest go to the bottom unranked.
+    const MIN_CALLI = 10;
+    const ok = (r) => kryt !== 'cash_na_umowiony' || r.umowione >= MIN_CALLI;
+    const rows = closerzy.filter((r) => r.closer !== 'Razem')
+      .sort((a, b) => (ok(b) - ok(a)) || ((b[kryt] ?? -1) - (a[kryt] ?? -1)) || (b.cash - a.cash));
+    const total = kryt === 'cash_na_umowiony' ? null : rows.reduce((s, r) => s + (r[kryt] || 0), 0);
+    let n = 0;
+    return rows.map((r) => ({
+      miejsce: ok(r) ? ++n : null, closer: r.closer, kryterium: kryt, wynik: r[kryt],
+      udzial: total ? (r[kryt] || 0) / total : null,
+      cash: r.cash, nowi_klienci: r.nowi_klienci, show_rate: r.show_rate, close_rate: r.close_rate,
+      cash_na_umowiony: r.cash_na_umowiony, umowione: r.umowione, odbyte: r.odbyte,
+    }));
+  };
+
+// Daily stats: one row per day of the chosen period (newest first) plus a total row.
+const calcDzienne = (zdarzenia) => {
+  const p = dash.params();
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const today = new Date(); const t = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+  const od = p.od || iso(new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), 1)));
+  const dO = p.do || iso(t);
+  const div = (x, y) => (y ? x / y : null);
+  const pusty = (k) => ({data: k, ad_spend: 0, revenue: 0, zwroty: 0, aplikacje: 0, umowione: 0, w_kalendarzu: 0, odbyte: 0, sprzedaze_eod: 0, nowi_klienci: 0, cashCloser: {}});
+  const by = new Map();
+  for (let d = Date.parse(dO); d >= Date.parse(od); d -= 864e5) by.set(iso(new Date(d)), pusty(iso(new Date(d))));
+  const tot = pusty('Razem');
+  for (const e of zdarzenia) {
+    const r = by.get(e.data);
+    if (!r) continue;
+    for (const x of [r, tot]) {
+      if (e.typ === 'reklama') x.ad_spend += e.kwota;
+      else if (e.typ === 'wpłata') {
+        x.revenue += e.kwota;
+        if (e.zwrot) x.zwroty += e.kwota;
+        if (e.produkt === 'EcomHub' && e.nowy_klient) x.nowi_klienci++;
+        if (e.produkt === 'EcomHub' && e.closer) x.cashCloser[e.closer] = (x.cashCloser[e.closer] || 0) + e.kwota;
+      } else if (e.typ === 'call' && e.produkt !== 'Starter') x.umowione++;
+      else if (e.typ === 'eod' && e.produkt === 'EcomHub') { x.w_kalendarzu += e.w_kalendarzu; x.odbyte += e.odbyte; x.sprzedaze_eod += e.sprzedaze_eod; }
+      else if (e.typ === 'aplikacja') x.aplikacje++;
+    }
+  }
+  // Top closer = highest EcomHub cash collected that day.
+  const fin = ({cashCloser, ...r}) => {
+    const top = Object.entries(cashCloser).sort((a, b) => b[1] - a[1])[0];
+    const net = (r.revenue - r.zwroty) / 1.23;
+    return {...r, net, net_po_reklamach: net - r.ad_spend, top_closer: top ? top[0] : null, top_closer_cash: top ? top[1] : null,
+      show_rate: div(r.odbyte, r.w_kalendarzu), close_rate: div(r.sprzedaze_eod, r.odbyte)};
+  };
+  return [fin(tot), ...[...by.values()].map(fin)];
+};
+
+</script>
+<script>
+// EcomHub mobile app: loads events from the API, computes metrics, renders 4 screens.
+(() => {
+  const API_URL = window.EH_API_URL || '';
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+  const nf0 = new Intl.NumberFormat('pl-PL', {maximumFractionDigits: 0});
+  const nf1 = new Intl.NumberFormat('pl-PL', {minimumFractionDigits: 1, maximumFractionDigits: 1});
+  const nf2 = new Intl.NumberFormat('pl-PL', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const fmt = (v, f) => {
+    if (v === null || v === undefined || Number.isNaN(v)) return '—';
+    if (f === 'pln') return nf0.format(v) + ' zł';
+    if (f === 'pct') return nf1.format(v * 100) + '%';
+    if (f === 'x') return nf2.format(v) + '×';
+    return nf0.format(v);
+  };
+  const dfDay = new Intl.DateTimeFormat('pl-PL', {day: 'numeric', month: 'short', timeZone: 'UTC'});
+  const dfFull = new Intl.DateTimeFormat('pl-PL', {day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC'});
+  const dfDow = new Intl.DateTimeFormat('pl-PL', {weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC'});
+  const d8 = (s) => new Date(Date.parse(s));
+  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const today = () => { const n = new Date(); return new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())); };
+
+  // ----- state -----
+  const state = {range: '1M', ranking: 'cash', tab: 'home', events: null, generatedAt: null, error: null, loading: false};
+  const RANGES = {
+    '1D': () => { const t = iso(today()); return {od: t, do: t, label: 'Dzisiaj'}; },
+    '1W': () => { const t = today(); return {od: iso(new Date(t - 6 * 864e5)), do: iso(t), label: 'Ostatnie 7 dni'}; },
+    '1M': () => { const t = today(); return {od: iso(new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), 1))), do: iso(t), label: 'Ten miesiąc'}; },
+    '1Y': () => { const t = today(); return {od: t.getUTCFullYear() + '-01-01', do: iso(t), label: 'Od początku roku'}; },
+    'ALL': () => { const t = today(); const min = (state.events || []).reduce((m, e) => (e.data && e.data >= '2025-01-01' && e.data < m ? e.data : m), iso(t)); return {od: min, do: iso(t), label: 'Wszystko'}; },
+  };
+  const range = () => RANGES[state.range]();
+  // The metric functions read the period through dash.params(), as in the desktop dashboard.
+  window.dash = {params: () => ({...range(), ranking: state.ranking})};
+
+  // ----- data -----
+  const load = async (manual) => {
+    const key = localStorage.getItem('eh_key');
+    if (window.EH_MOCK) { apply(JSON.parse(window.EH_MOCK)); return; }
+    if (!key) { state.tab = 'setup'; render(); return; }
+    state.loading = true; state.error = null; render();
+    try {
+      const res = await fetch(API_URL + '?key=' + encodeURIComponent(key) + (manual ? '&fresh=1' : ''), {cache: 'no-store'});
+      const o = await res.json();
+      if (o.error) throw new Error(o.error);
+      localStorage.setItem('eh_cache', JSON.stringify(o));
+      apply(o);
+    } catch (e) {
+      state.error = String(e.message || e);
+      if (/klucz/i.test(state.error)) { localStorage.removeItem('eh_key'); state.tab = 'setup'; }
+    }
+    state.loading = false; render();
+  };
+  const apply = (o) => {
+    state.events = o.events.map((r) => { const e = {}; o.columns.forEach((c, i) => { e[c] = r[i]; }); return e; });
+    state.generatedAt = o.generatedAt;
+    if (state.tab === 'setup') state.tab = 'home';
+    render();
+  };
+
+  // ----- small builders -----
+  const delta = (v, pp, good = 'up') => {
+    if (v === null || v === undefined || !Number.isFinite(v)) return '<span class="d flat">— vs poprz. okres</span>';
+    const up = v > 0.0005, down = v < -0.0005;
+    const cls = !up && !down ? 'flat' : good === 'none' ? 'flat' : (up === (good === 'up') ? 'good' : 'bad');
+    const txt = (up ? '▲ ' : down ? '▼ ' : '') + (pp ? nf1.format(Math.abs(v) * 100) + ' pp' : nf1.format(Math.abs(v) * 100) + '%');
+    return `<span class="d ${cls}">${txt}</span>`;
+  };
+  const card = (label, value, d) => `<div class="card"><div class="lbl">${esc(label)}</div><div class="val">${esc(value)}</div>${d || ''}</div>`;
+  const initials = (n) => esc(String(n || '?').slice(0, 1).toUpperCase());
+
+  // Cumulative revenue per day for the current and previous period.
+  const series = (od, dO) => {
+    const days = [];
+    for (let d = Date.parse(od); d <= Date.parse(dO); d += 864e5) days.push(iso(new Date(d)));
+    const per = Object.fromEntries(days.map((k) => [k, 0]));
+    for (const e of state.events) if (e.typ === 'wpłata' && per[e.data] !== undefined) per[e.data] += e.kwota;
+    let acc = 0;
+    return days.map((k) => (acc += per[k]));
+  };
+  const chart = (cur, prev) => {
+    const W = Math.min(window.innerWidth, 520) - 32, H = 170, pad = 6;
+    if (cur.length <= 1) {
+      const a = cur[0] || 0, b = prev[0] || 0, m = Math.max(a, b, 1);
+      const bw = (W - 40) / 2;
+      return `<svg class="chart" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Revenue dziś vs wczoraj">
+        <rect x="10" y="${H - 28 - (b / m) * (H - 50)}" width="${bw}" height="${(b / m) * (H - 50)}" rx="10" class="bar-prev"/>
+        <rect x="${30 + bw}" y="${H - 28 - (a / m) * (H - 50)}" width="${bw}" height="${(a / m) * (H - 50)}" rx="10" class="bar-cur"/>
+        <text x="${10 + bw / 2}" y="${H - 8}" class="ax">Wczoraj · ${esc(fmt(b, 'pln'))}</text>
+        <text x="${30 + bw * 1.5}" y="${H - 8}" class="ax">Dziś · ${esc(fmt(a, 'pln'))}</text></svg>`;
+    }
+    const n = Math.max(cur.length, prev.length);
+    const max = Math.max(1, ...cur, ...prev);
+    const x = (i) => pad + (i / (n - 1)) * (W - 2 * pad);
+    const y = (v) => H - pad - (v / max) * (H - 2 * pad - 10);
+    const path = (s) => s.map((v, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1)).join(' ');
+    const area = path(cur) + ` L ${x(cur.length - 1).toFixed(1)} ${H - pad} L ${x(0).toFixed(1)} ${H - pad} Z`;
+    const last = cur.length - 1;
+    return `<svg class="chart" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Narastające revenue w okresie">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff7a00" stop-opacity=".35"/><stop offset="1" stop-color="#ff7a00" stop-opacity="0"/></linearGradient></defs>
+      <path d="${path(prev)}" class="ln-prev"/>
+      <path d="${area}" fill="url(#g)"/>
+      <path d="${path(cur)}" class="ln-cur"/>
+      <circle cx="${x(last)}" cy="${y(cur[last])}" r="9" class="dot-halo"/><circle cx="${x(last)}" cy="${y(cur[last])}" r="5" class="dot"/></svg>`;
+  };
+
+  // ----- screens -----
+  const home = () => {
+    const [k] = calcKpi(state.events);
+    const r = range();
+    const prevRange = calcKpi(state.events)[1];
+    const lb = calcLeaderboard(calcClosers(state.events)).slice(0, 3);
+    const pills = ['1D', '1W', '1M', '1Y', 'ALL'].map((p) => `<button class="pill ${p === state.range ? 'on' : ''}" data-range="${p}">${p}</button>`).join('');
+    return `
+      <div class="hero">
+        <div class="row-between"><div class="lbl-lg">Revenue</div><div class="chip">${esc(r.label)}</div></div>
+        <div class="big">${esc(fmt(k.revenue, 'pln'))}</div>
+        <div class="sub">${delta(k.revenue_zm, false)} <span class="muted">vs ${esc(r.od === r.do ? dfFull.format(d8(prevRange.od)) : dfDay.format(d8(prevRange.od)) + ' – ' + dfFull.format(d8(prevRange.do)))}</span></div>
+      </div>
+      ${chart(series(r.od, r.do), series(prevRange.od, prevRange.do))}
+      <div class="legend"><span><i class="lg-cur"></i>${esc(r.label)}</span><span><i class="lg-prev"></i>Poprzedni okres</span></div>
+      <div class="pills">${pills}</div>
+      <div class="grid">
+        ${card('Net po reklamach', fmt(k.net_po_reklamach, 'pln'), delta(k.net_po_reklamach_zm, false))}
+        ${card('Net revenue', fmt(k.net, 'pln'), delta(k.net_zm, false))}
+        ${card('Ad spend', fmt(k.ad_spend, 'pln'), delta(k.ad_spend_zm, false, 'none'))}
+        ${card('ROAS (Paid)', fmt(k.roas, 'x'), delta(k.roas_zm, false))}
+        ${card('Nowi klienci', fmt(k.nowi_ecomhub), delta(k.nowi_ecomhub_zm, false))}
+        ${card('Umówione calle', fmt(k.umowione_ecomhub), delta(k.umowione_ecomhub_zm, false))}
+        ${card('Show rate', fmt(k.show_rate_ecomhub, 'pct'), delta(k.show_rate_ecomhub_zm, true))}
+        ${card('Close rate', fmt(k.close_rate_ecomhub, 'pct'), delta(k.close_rate_ecomhub_zm, true))}
+        ${card('Cash / call', fmt(k.cash_na_umowiony, 'pln'), delta(k.cash_na_umowiony_zm, false))}
+        ${card('Starter', fmt(k.revenue_starter, 'pln'), delta(k.revenue_starter_zm, false))}
+      </div>
+      <div class="section-h">Top closerzy <button class="link" data-tab="ranking">Ranking ›</button></div>
+      <div class="list">${lb.length ? lb.map((c) => `
+        <div class="item"><div class="av">${initials(c.closer)}</div><div class="grow"><div class="t">${esc(c.closer)}</div><div class="s">close ${esc(fmt(c.close_rate, 'pct'))} · show ${esc(fmt(c.show_rate, 'pct'))}</div></div><div class="amt">${esc(fmt(c.cash, 'pln'))}</div></div>`).join('') : '<div class="empty">Brak sprzedaży w tym okresie.</div>'}</div>`;
+  };
+
+  const daily = () => {
+    const rows = calcDzienne(state.events);
+    const [tot, ...days] = rows;
+    return `
+      <div class="hero"><div class="lbl-lg">Dzień po dniu</div><div class="sub muted">${esc(range().label)} · razem ${esc(fmt(tot.revenue, 'pln'))}</div></div>
+      <div class="pills">${['1D', '1W', '1M', '1Y'].map((p) => `<button class="pill ${p === state.range ? 'on' : ''}" data-range="${p}">${p}</button>`).join('')}</div>
+      <div class="list">${days.map((d) => `
+        <div class="item day">
+          <div class="grow">
+            <div class="t">${esc(cap(dfDow.format(d8(d.data))))}</div>
+            <div class="s">${d.w_kalendarzu ? `${esc(d.odbyte)}/${esc(d.w_kalendarzu)} calli · show ${esc(fmt(d.show_rate, 'pct'))} · close ${esc(fmt(d.close_rate, 'pct'))}` : 'Brak calli w EOD'}</div>
+            <div class="s">${esc(d.umowione)} nowych bookingów · ${esc(d.aplikacje)} aplikacji · ${esc(d.nowi_klienci)} nowych klientów</div>
+            ${d.top_closer ? `<div class="s">🏆 ${esc(d.top_closer)} · ${esc(fmt(d.top_closer_cash, 'pln'))}</div>` : ''}
+          </div>
+          <div class="right"><div class="amt">${esc(fmt(d.revenue, 'pln'))}</div><div class="s ${d.net_po_reklamach < 0 ? 'neg' : ''}">net ${esc(fmt(d.net_po_reklamach, 'pln'))}</div>${d.ad_spend ? `<div class="s">ads ${esc(fmt(d.ad_spend, 'pln'))}</div>` : ''}</div>
+        </div>`).join('')}</div>`;
+  };
+
+  const closers = () => {
+    const rows = calcClosers(state.events).filter((r) => r.closer !== 'Razem');
+    return `
+      <div class="hero"><div class="lbl-lg">Closerzy</div><div class="sub muted">${esc(range().label)}</div></div>
+      <div class="pills">${['1D', '1W', '1M', '1Y'].map((p) => `<button class="pill ${p === state.range ? 'on' : ''}" data-range="${p}">${p}</button>`).join('')}</div>
+      ${rows.length ? rows.map((c) => `
+        <div class="ccard">
+          <div class="row-between"><div class="row"><div class="av">${initials(c.closer)}</div><div class="t">${esc(c.closer)}</div></div><div class="amt">${esc(fmt(c.cash, 'pln'))}</div></div>
+          <div class="mini">
+            <div><div class="lbl">Umówione</div><div class="mv">${esc(fmt(c.umowione))}</div></div>
+            <div><div class="lbl">Odbyte</div><div class="mv">${esc(fmt(c.odbyte))}</div></div>
+            <div><div class="lbl">Show</div><div class="mv">${esc(fmt(c.show_rate, 'pct'))}</div></div>
+            <div><div class="lbl">Close</div><div class="mv">${esc(fmt(c.close_rate, 'pct'))}</div></div>
+            <div><div class="lbl">Nowi</div><div class="mv">${esc(fmt(c.nowi_klienci))}</div></div>
+            <div><div class="lbl">Cash/call</div><div class="mv">${esc(fmt(c.cash_na_umowiony, 'pln'))}</div></div>
+          </div>
+        </div>`).join('') : '<div class="empty">Brak aktywności closerów w tym okresie.</div>'}`;
+  };
+
+  const ranking = () => {
+    const rows = calcLeaderboard(calcClosers(state.events));
+    const kryt = state.ranking, f = kryt === 'nowi_klienci' ? 'int' : 'pln';
+    const max = Math.max(1, ...rows.filter((r) => r.miejsce).map((r) => r[kryt] || 0));
+    const seg = [['cash', 'Cash'], ['cash_na_umowiony', 'Cash/call'], ['nowi_klienci', 'Nowi']].map(([v, l]) => `<button class="seg ${v === kryt ? 'on' : ''}" data-rank="${v}">${l}</button>`).join('');
+    const medal = (m) => (m === 1 ? '🥇' : m === 2 ? '🥈' : m === 3 ? '🥉' : m ? m : '–');
+    return `
+      <div class="hero"><div class="lbl-lg">Leaderboard</div><div class="sub muted">${esc(range().label)}</div></div>
+      <div class="pills">${['1D', '1W', '1M', '1Y'].map((p) => `<button class="pill ${p === state.range ? 'on' : ''}" data-range="${p}">${p}</button>`).join('')}</div>
+      <div class="segs">${seg}</div>
+      <div class="list">${rows.length ? rows.map((r) => `
+        <div class="item ${r.miejsce === 1 ? 'lead' : ''}">
+          <div class="medal">${medal(r.miejsce)}</div>
+          <div class="grow"><div class="t">${esc(r.closer)}</div>
+            <div class="track"><span style="width:${r.miejsce ? Math.max(2, ((r[kryt] || 0) / max) * 100) : 0}%"></span></div>
+            <div class="s">show ${esc(fmt(r.show_rate, 'pct'))} · close ${esc(fmt(r.close_rate, 'pct'))} · ${esc(fmt(r.nowi_klienci))} nowych</div></div>
+          <div class="amt">${esc(fmt(r[kryt], f))}</div>
+        </div>`).join('') : '<div class="empty">Brak aktywności closerów w tym okresie.</div>'}</div>
+      ${kryt === 'cash_na_umowiony' ? '<div class="note">Miejsce w rankingu cash/call tylko od 10 umówionych calli.</div>' : ''}`;
+  };
+
+  const setup = () => `
+    <div class="hero"><div class="lbl-lg">Witaj w EcomHub</div><div class="sub muted">Wpisz klucz dostępu, żeby wczytać dane. Zapisze się na tym telefonie.</div></div>
+    <form class="setup" id="setup"><input id="key" type="password" autocomplete="off" placeholder="Klucz dostępu" required><button class="btn" type="submit">Zaloguj</button></form>
+    ${state.error ? `<div class="err">${esc(state.error)}</div>` : ''}`;
+
+  // ----- render -----
+  const render = () => {
+    const main = $('#main');
+    if (state.tab === 'setup') main.innerHTML = setup();
+    else if (!state.events) main.innerHTML = state.error ? `<div class="err">${esc(state.error)}</div>` : '<div class="loading"><div class="spin"></div>Wczytywanie danych…</div>';
+    else main.innerHTML = (state.error ? `<div class="err">Nie udało się odświeżyć: ${esc(state.error)}. Pokazuję ostatnie dane.</div>` : '') +
+      ({home, daily, closers, ranking}[state.tab] || home)();
+    const g = state.generatedAt ? new Date(state.generatedAt) : null;
+    $('#stamp').textContent = state.loading ? 'Odświeżanie…' : g && !isNaN(g) ? 'Dane z ' + g.toLocaleString('pl-PL', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'}) : '';
+    $('#refresh').classList.toggle('spinning', state.loading);
+    for (const b of document.querySelectorAll('.nav button')) b.classList.toggle('on', b.dataset.tab === state.tab);
+  };
+
+  document.addEventListener('click', (ev) => {
+    const t = ev.target.closest('[data-range],[data-tab],[data-rank],#refresh');
+    if (!t) return;
+    if (t.id === 'refresh') { load(true); return; }
+    if (t.dataset.range) state.range = t.dataset.range;
+    if (t.dataset.tab) { state.tab = t.dataset.tab; window.scrollTo(0, 0); }
+    if (t.dataset.rank) state.ranking = t.dataset.rank;
+    render();
+  });
+  document.addEventListener('submit', (ev) => {
+    if (ev.target.id !== 'setup') return;
+    ev.preventDefault();
+    localStorage.setItem('eh_key', $('#key').value.trim());
+    state.tab = 'home'; state.error = null; load(true);
+  });
+  window.addEventListener('resize', () => render());
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && state.events && !window.EH_MOCK) load(false); });
+
+  // Start: show the last saved data at once, then fetch fresh data.
+  const cached = localStorage.getItem('eh_cache');
+  if (cached && !window.EH_MOCK) { try { apply(JSON.parse(cached)); } catch (e) { localStorage.removeItem('eh_cache'); } }
+  render();
+  load(false);
+})();
+
+</script>
+</body>
+</html>
