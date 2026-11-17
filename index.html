@@ -275,12 +275,14 @@ const calcDzienne = (zdarzenia) => {
   const state = {range: '1M', ranking: 'cash', tab: 'home', events: null, generatedAt: null, error: null, loading: false};
   const RANGES = {
     '1D': () => { const t = iso(today()); return {od: t, do: t, label: 'Dzisiaj'}; },
+    'WCZ': () => { const y = iso(new Date(today() - 864e5)); return {od: y, do: y, label: 'Wczoraj'}; },
     '1W': () => { const t = today(); return {od: iso(new Date(t - 6 * 864e5)), do: iso(t), label: 'Ostatnie 7 dni'}; },
     '1M': () => { const t = today(); return {od: iso(new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), 1))), do: iso(t), label: 'Ten miesiąc'}; },
     '1Y': () => { const t = today(); return {od: t.getUTCFullYear() + '-01-01', do: iso(t), label: 'Od początku roku'}; },
     'ALL': () => { const t = today(); const min = (state.events || []).reduce((m, e) => (e.data && e.data >= '2025-01-01' && e.data < m ? e.data : m), iso(t)); return {od: min, do: iso(t), label: 'Wszystko'}; },
   };
-  const range = () => RANGES[state.range]();
+  const PILL = {'WCZ': 'Wcz'};
+  const range = () => (RANGES[state.range] || RANGES['1M'])();
   // The metric functions read the period through dash.params(), as in the desktop dashboard.
   window.dash = {params: () => ({...range(), ranking: state.ranking})};
 
@@ -329,16 +331,16 @@ const calcDzienne = (zdarzenia) => {
     let acc = 0;
     return days.map((k) => (acc += per[k]));
   };
-  const chart = (cur, prev) => {
+  const chart = (cur, prev, names) => {
     const W = Math.min(window.innerWidth, 520) - 32, H = 170, pad = 6;
     if (cur.length <= 1) {
       const a = cur[0] || 0, b = prev[0] || 0, m = Math.max(a, b, 1);
       const bw = (W - 40) / 2;
-      return `<svg class="chart" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Revenue dziś vs wczoraj">
+      return `<svg class="chart" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Revenue dzień do dnia">
         <rect x="10" y="${H - 28 - (b / m) * (H - 50)}" width="${bw}" height="${(b / m) * (H - 50)}" rx="10" class="bar-prev"/>
         <rect x="${30 + bw}" y="${H - 28 - (a / m) * (H - 50)}" width="${bw}" height="${(a / m) * (H - 50)}" rx="10" class="bar-cur"/>
-        <text x="${10 + bw / 2}" y="${H - 8}" class="ax">Wczoraj · ${esc(fmt(b, 'pln'))}</text>
-        <text x="${30 + bw * 1.5}" y="${H - 8}" class="ax">Dziś · ${esc(fmt(a, 'pln'))}</text></svg>`;
+        <text x="${10 + bw / 2}" y="${H - 8}" class="ax">${esc(names[0])} · ${esc(fmt(b, 'pln'))}</text>
+        <text x="${30 + bw * 1.5}" y="${H - 8}" class="ax">${esc(names[1])} · ${esc(fmt(a, 'pln'))}</text></svg>`;
     }
     const n = Math.max(cur.length, prev.length);
     const max = Math.max(1, ...cur, ...prev);
@@ -361,14 +363,14 @@ const calcDzienne = (zdarzenia) => {
     const r = range();
     const prevRange = calcKpi(state.events)[1];
     const lb = calcLeaderboard(calcClosers(state.events)).slice(0, 3);
-    const pills = ['1D', '1W', '1M', '1Y', 'ALL'].map((p) => `<button class="pill ${p === state.range ? 'on' : ''}" data-range="${p}">${p}</button>`).join('');
+    const pills = ['1D', 'WCZ', '1W', '1M', '1Y', 'ALL'].map((p) => `<button class="pill ${p === state.range ? 'on' : ''}" data-range="${p}">${PILL[p] || p}</button>`).join('');
     return `
       <div class="hero">
         <div class="row-between"><div class="lbl-lg">Revenue</div><div class="chip">${esc(r.label)}</div></div>
         <div class="big">${esc(fmt(k.revenue, 'pln'))}</div>
         <div class="sub">${delta(k.revenue_zm, false)} <span class="muted">vs ${esc(r.od === r.do ? dfFull.format(d8(prevRange.od)) : dfDay.format(d8(prevRange.od)) + ' – ' + dfFull.format(d8(prevRange.do)))}</span></div>
       </div>
-      ${chart(series(r.od, r.do), series(prevRange.od, prevRange.do))}
+      ${chart(series(r.od, r.do), series(prevRange.od, prevRange.do), state.range === 'WCZ' ? ['Przedwczoraj', 'Wczoraj'] : ['Wczoraj', 'Dziś'])}
       <div class="legend"><span><i class="lg-cur"></i>${esc(r.label)}</span><span><i class="lg-prev"></i>Poprzedni okres</span></div>
       <div class="pills">${pills}</div>
       <div class="grid">
@@ -393,7 +395,7 @@ const calcDzienne = (zdarzenia) => {
     const [tot, ...days] = rows;
     return `
       <div class="hero"><div class="lbl-lg">Dzień po dniu</div><div class="sub muted">${esc(range().label)} · razem ${esc(fmt(tot.revenue, 'pln'))}</div></div>
-      <div class="pills">${['1D', '1W', '1M', '1Y'].map((p) => `<button class="pill ${p === state.range ? 'on' : ''}" data-range="${p}">${p}</button>`).join('')}</div>
+      <div class="pills">${['1D', 'WCZ', '1W', '1M', '1Y'].map((p) => `<button class="pill ${p === state.range ? 'on' : ''}" data-range="${p}">${PILL[p] || p}</button>`).join('')}</div>
       <div class="list">${days.map((d) => `
         <div class="item day">
           <div class="grow">
@@ -410,7 +412,7 @@ const calcDzienne = (zdarzenia) => {
     const rows = calcClosers(state.events).filter((r) => r.closer !== 'Razem');
     return `
       <div class="hero"><div class="lbl-lg">Closerzy</div><div class="sub muted">${esc(range().label)}</div></div>
-      <div class="pills">${['1D', '1W', '1M', '1Y'].map((p) => `<button class="pill ${p === state.range ? 'on' : ''}" data-range="${p}">${p}</button>`).join('')}</div>
+      <div class="pills">${['1D', 'WCZ', '1W', '1M', '1Y'].map((p) => `<button class="pill ${p === state.range ? 'on' : ''}" data-range="${p}">${PILL[p] || p}</button>`).join('')}</div>
       ${rows.length ? rows.map((c) => `
         <div class="ccard">
           <div class="row-between"><div class="row"><div class="av">${initials(c.closer)}</div><div class="t">${esc(c.closer)}</div></div><div class="amt">${esc(fmt(c.cash, 'pln'))}</div></div>
@@ -433,7 +435,7 @@ const calcDzienne = (zdarzenia) => {
     const medal = (m) => (m === 1 ? '🥇' : m === 2 ? '🥈' : m === 3 ? '🥉' : m ? m : '–');
     return `
       <div class="hero"><div class="lbl-lg">Leaderboard</div><div class="sub muted">${esc(range().label)}</div></div>
-      <div class="pills">${['1D', '1W', '1M', '1Y'].map((p) => `<button class="pill ${p === state.range ? 'on' : ''}" data-range="${p}">${p}</button>`).join('')}</div>
+      <div class="pills">${['1D', 'WCZ', '1W', '1M', '1Y'].map((p) => `<button class="pill ${p === state.range ? 'on' : ''}" data-range="${p}">${PILL[p] || p}</button>`).join('')}</div>
       <div class="segs">${seg}</div>
       <div class="list">${rows.length ? rows.map((r) => `
         <div class="item ${r.miejsce === 1 ? 'lead' : ''}">
@@ -488,7 +490,6 @@ const calcDzienne = (zdarzenia) => {
   render();
   load(false);
 })();
-
 </script>
 </body>
 </html>
